@@ -17,22 +17,26 @@ import { Input } from "../components/ui/input";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { supabase } from "@/lib/supabase";
 
 const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
+  fullName: z.string().optional(),
 });
 
 const Login = () => {
-  const { user, signIn } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
+      fullName: "",
     },
   });
 
@@ -43,16 +47,48 @@ const Login = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsLoading(true);
-      await signIn(values.email, values.password);
-      toast({
-        title: "Signed in successfully",
-        description: "Welcome back!",
-      });
-    } catch (error) {
+      if (isSignUp) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: values.email,
+          password: values.password,
+          options: {
+            data: {
+              full_name: values.fullName,
+            },
+          },
+        });
+        if (signUpError) throw signUpError;
+        toast({
+          title: "Account created successfully",
+          description: "Please check your email to verify your account.",
+        });
+      } else {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: values.email,
+          password: values.password,
+        });
+        if (signInError) {
+          if (signInError.message.includes("Invalid login credentials")) {
+            setIsSignUp(true);
+            form.setValue("fullName", "");
+            toast({
+              title: "Account not found",
+              description: "Would you like to create a new account?",
+            });
+            return;
+          }
+          throw signInError;
+        }
+        toast({
+          title: "Signed in successfully",
+          description: "Welcome back!",
+        });
+      }
+    } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error signing in",
-        description: "Please check your credentials and try again",
+        title: "Error",
+        description: error.message,
       });
     } finally {
       setIsLoading(false);
@@ -60,15 +96,22 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: "linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%)"
+      }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Sign in</CardTitle>
+            <CardTitle className="text-2xl text-center font-bold text-gray-800">
+              {isSignUp ? "Create Account" : "Welcome Back"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -78,11 +121,12 @@ const Login = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel className="text-gray-700">Email</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
                           placeholder="Enter your email"
+                          className="bg-white/50"
                           {...field}
                         />
                       </FormControl>
@@ -90,16 +134,36 @@ const Login = () => {
                     </FormItem>
                   )}
                 />
+                {isSignUp && (
+                  <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700">Full Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter your full name"
+                            className="bg-white/50"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel className="text-gray-700">Password</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
                           placeholder="Enter your password"
+                          className="bg-white/50"
                           {...field}
                         />
                       </FormControl>
@@ -107,9 +171,26 @@ const Login = () => {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Sign in"}
+                <Button
+                  type="submit"
+                  className="w-full bg-accent hover:bg-accent/90"
+                  disabled={isLoading}
+                >
+                  {isLoading
+                    ? "Please wait..."
+                    : isSignUp
+                    ? "Sign Up"
+                    : "Sign In"}
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="w-full text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  {isSignUp
+                    ? "Already have an account? Sign In"
+                    : "Don't have an account? Sign Up"}
+                </button>
               </form>
             </Form>
           </CardContent>
