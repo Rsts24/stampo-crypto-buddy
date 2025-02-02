@@ -20,8 +20,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { supabase } from "@/lib/supabase";
 
 const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
   fullName: z.string().optional(),
 });
 
@@ -47,6 +47,7 @@ const Login = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsLoading(true);
+      
       if (isSignUp) {
         const { error: signUpError } = await supabase.auth.signUp({
           email: values.email,
@@ -57,7 +58,21 @@ const Login = () => {
             },
           },
         });
-        if (signUpError) throw signUpError;
+
+        if (signUpError) {
+          if (signUpError.message.includes("User already registered")) {
+            toast({
+              variant: "destructive",
+              title: "Account already exists",
+              description: "Please try signing in instead.",
+            });
+            setIsSignUp(false);
+          } else {
+            throw signUpError;
+          }
+          return;
+        }
+
         toast({
           title: "Account created successfully",
           description: "Please check your email to verify your account.",
@@ -67,28 +82,31 @@ const Login = () => {
           email: values.email,
           password: values.password,
         });
+
         if (signInError) {
           if (signInError.message.includes("Invalid login credentials")) {
-            setIsSignUp(true);
-            form.setValue("fullName", "");
             toast({
               title: "Account not found",
               description: "Would you like to create a new account?",
             });
-            return;
+            setIsSignUp(true);
+            form.setValue("fullName", "");
+          } else {
+            throw signInError;
           }
-          throw signInError;
+          return;
         }
+
         toast({
-          title: "Signed in successfully",
-          description: "Welcome back!",
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
         });
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
       });
     } finally {
       setIsLoading(false);
