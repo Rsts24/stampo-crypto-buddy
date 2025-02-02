@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { toast } from '@/hooks/use-toast';
 
 type AuthContextType = {
   user: User | null;
@@ -30,23 +31,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    console.log('Attempting to sign in with:', email);
-    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-    
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('Sign in error:', error);
+        toast({
+          variant: "destructive",
+          title: "Authentication error",
+          description: error.message
+        });
+        throw error;
+      }
+    } catch (error: any) {
       console.error('Sign in error:', error);
+      toast({
+        variant: "destructive",
+        title: "Authentication error",
+        description: error.message || "Failed to sign in. Please try again."
+      });
       throw error;
     }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message
+        });
+        throw error;
+      }
+    } catch (error: any) {
+      console.error('Sign out error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to sign out. Please try again."
+      });
+      throw error;
+    }
   };
 
   return (
