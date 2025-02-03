@@ -1,38 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Navigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "../components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../components/ui/form";
-import { Input } from "../components/ui/input";
-import { useAuth } from "../contexts/AuthContext";
-import { useToast } from "../hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-
-const phoneRegex = /^\+[1-9]\d{1,14}$/;
-
-const emailFormSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  fullName: z.string().optional(),
-});
-
-const phoneFormSchema = z.object({
-  phone: z.string().regex(phoneRegex, "Please enter a valid phone number with country code (e.g., +1234567890)"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  fullName: z.string().optional(),
-});
+import { AuthForm, emailFormSchema, phoneFormSchema } from "@/components/auth/AuthForm";
+import * as z from "zod";
 
 const Login = () => {
   const { user } = useAuth();
@@ -40,24 +15,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
-
-  const emailForm = useForm<z.infer<typeof emailFormSchema>>({
-    resolver: zodResolver(emailFormSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-      fullName: "",
-    },
-  });
-
-  const phoneForm = useForm<z.infer<typeof phoneFormSchema>>({
-    resolver: zodResolver(phoneFormSchema),
-    defaultValues: {
-      phone: "",
-      password: "",
-      fullName: "",
-    },
-  });
 
   if (user) {
     return <Navigate to="/profile" />;
@@ -214,149 +171,21 @@ const Login = () => {
               </TabsList>
 
               <TabsContent value="email">
-                <Form {...emailForm}>
-                  <form onSubmit={emailForm.handleSubmit(handleEmailSubmit)} className="space-y-4">
-                    <FormField
-                      control={emailForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Email</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="email"
-                              placeholder="Enter your email"
-                              className="bg-white/50"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {isSignUp && (
-                      <FormField
-                        control={emailForm.control}
-                        name="fullName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-gray-700">Full Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter your full name"
-                                className="bg-white/50"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                    <FormField
-                      control={emailForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Password</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="Enter your password"
-                              className="bg-white/50"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button
-                      type="submit"
-                      className="w-full bg-accent hover:bg-accent/90"
-                      disabled={isLoading}
-                    >
-                      {isLoading
-                        ? "Please wait..."
-                        : isSignUp
-                        ? "Sign Up"
-                        : "Sign In"}
-                    </Button>
-                  </form>
-                </Form>
+                <AuthForm
+                  type="email"
+                  isSignUp={isSignUp}
+                  onSubmit={handleEmailSubmit}
+                  isLoading={isLoading}
+                />
               </TabsContent>
 
               <TabsContent value="phone">
-                <Form {...phoneForm}>
-                  <form onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)} className="space-y-4">
-                    <FormField
-                      control={phoneForm.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Phone Number</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="tel"
-                              placeholder="+1234567890"
-                              className="bg-white/50"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {isSignUp && (
-                      <FormField
-                        control={phoneForm.control}
-                        name="fullName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-gray-700">Full Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter your full name"
-                                className="bg-white/50"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                    <FormField
-                      control={phoneForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Password</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="Enter your password"
-                              className="bg-white/50"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button
-                      type="submit"
-                      className="w-full bg-accent hover:bg-accent/90"
-                      disabled={isLoading}
-                    >
-                      {isLoading
-                        ? "Please wait..."
-                        : isSignUp
-                        ? "Sign Up with Phone"
-                        : "Sign In with Phone"}
-                    </Button>
-                  </form>
-                </Form>
+                <AuthForm
+                  type="phone"
+                  isSignUp={isSignUp}
+                  onSubmit={handlePhoneSubmit}
+                  isLoading={isLoading}
+                />
               </TabsContent>
             </Tabs>
 
