@@ -49,13 +49,14 @@ const Login = () => {
       setIsLoading(true);
       
       if (isSignUp) {
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: values.email,
           password: values.password,
           options: {
             data: {
               full_name: values.fullName,
             },
+            emailRedirectTo: `${window.location.origin}/auth/callback`
           },
         });
 
@@ -73,36 +74,41 @@ const Login = () => {
           return;
         }
 
-        toast({
-          title: "Account created successfully",
-          description: "Please check your email to verify your account.",
-        });
+        if (signUpData.user) {
+          toast({
+            title: "Account created successfully",
+            description: "Please check your email to verify your account.",
+          });
+        }
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: values.email,
           password: values.password,
         });
 
         if (signInError) {
+          console.error("Sign in error:", signInError);
           if (signInError.message.includes("Invalid login credentials")) {
             toast({
-              title: "Account not found",
-              description: "Would you like to create a new account?",
+              variant: "destructive",
+              title: "Invalid credentials",
+              description: "Please check your email and password.",
             });
-            setIsSignUp(true);
-            form.setValue("fullName", "");
           } else {
             throw signInError;
           }
           return;
         }
 
-        toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
-        });
+        if (signInData.user) {
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully signed in.",
+          });
+        }
       }
     } catch (error: any) {
+      console.error("Authentication error:", error);
       toast({
         variant: "destructive",
         title: "Error",
