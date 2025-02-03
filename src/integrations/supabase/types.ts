@@ -11,24 +11,39 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          address: string | null
           created_at: string
+          date_of_birth: string | null
           full_name: string | null
           id: string
           is_vendor: boolean | null
+          mobile_number: string | null
+          notification_preferences: Json | null
+          preferred_language: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
           created_at?: string
+          date_of_birth?: string | null
           full_name?: string | null
           id: string
           is_vendor?: boolean | null
+          mobile_number?: string | null
+          notification_preferences?: Json | null
+          preferred_language?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
           created_at?: string
+          date_of_birth?: string | null
           full_name?: string | null
           id?: string
           is_vendor?: boolean | null
+          mobile_number?: string | null
+          notification_preferences?: Json | null
+          preferred_language?: string | null
           updated_at?: string
         }
         Relationships: []

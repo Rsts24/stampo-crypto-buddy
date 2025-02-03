@@ -17,10 +17,19 @@ import { Input } from "../components/ui/input";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/lib/supabase";
 
-const formSchema = z.object({
+const phoneRegex = /^\+[1-9]\d{1,14}$/;
+
+const emailFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  fullName: z.string().optional(),
+});
+
+const phoneFormSchema = z.object({
+  phone: z.string().regex(phoneRegex, "Please enter a valid phone number with country code (e.g., +1234567890)"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   fullName: z.string().optional(),
 });
@@ -30,11 +39,21 @@ const Login = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const emailForm = useForm<z.infer<typeof emailFormSchema>>({
+    resolver: zodResolver(emailFormSchema),
     defaultValues: {
       email: "",
+      password: "",
+      fullName: "",
+    },
+  });
+
+  const phoneForm = useForm<z.infer<typeof phoneFormSchema>>({
+    resolver: zodResolver(phoneFormSchema),
+    defaultValues: {
+      phone: "",
       password: "",
       fullName: "",
     },
@@ -44,9 +63,10 @@ const Login = () => {
     return <Navigate to="/profile" />;
   }
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleEmailSubmit = async (values: z.infer<typeof emailFormSchema>) => {
     try {
       setIsLoading(true);
+      console.log("Attempting email auth:", { isSignUp, email: values.email });
       
       if (isSignUp) {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -56,11 +76,12 @@ const Login = () => {
             data: {
               full_name: values.fullName,
             },
-            emailRedirectTo: `${window.location.origin}/auth/callback`
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
 
         if (signUpError) {
+          console.error("Sign up error:", signUpError);
           if (signUpError.message.includes("User already registered")) {
             toast({
               variant: "destructive",
@@ -88,16 +109,7 @@ const Login = () => {
 
         if (signInError) {
           console.error("Sign in error:", signInError);
-          if (signInError.message.includes("Invalid login credentials")) {
-            toast({
-              variant: "destructive",
-              title: "Invalid credentials",
-              description: "Please check your email and password.",
-            });
-          } else {
-            throw signInError;
-          }
-          return;
+          throw signInError;
         }
 
         if (signInData.user) {
@@ -111,7 +123,64 @@ const Login = () => {
       console.error("Authentication error:", error);
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Authentication error",
+        description: error.message || "An unexpected error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePhoneSubmit = async (values: z.infer<typeof phoneFormSchema>) => {
+    try {
+      setIsLoading(true);
+      console.log("Attempting phone auth:", { isSignUp, phone: values.phone });
+
+      if (isSignUp) {
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          phone: values.phone,
+          password: values.password,
+          options: {
+            data: {
+              full_name: values.fullName,
+            },
+          },
+        });
+
+        if (signUpError) {
+          console.error("Phone sign up error:", signUpError);
+          throw signUpError;
+        }
+
+        if (signUpData.user) {
+          toast({
+            title: "Verification code sent",
+            description: "Please check your phone for the verification code.",
+          });
+        }
+      } else {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          phone: values.phone,
+          password: values.password,
+        });
+
+        if (signInError) {
+          console.error("Phone sign in error:", signInError);
+          throw signInError;
+        }
+
+        if (signInData.user) {
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully signed in.",
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error("Phone authentication error:", error);
+      toast({
+        variant: "destructive",
+        title: "Authentication error",
         description: error.message || "An unexpected error occurred",
       });
     } finally {
@@ -138,85 +207,168 @@ const Login = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700">Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="Enter your email"
-                          className="bg-white/50"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {isSignUp && (
-                  <FormField
-                    control={form.control}
-                    name="fullName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-gray-700">Full Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter your full name"
-                            className="bg-white/50"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+            <Tabs value={authMethod} onValueChange={(value) => setAuthMethod(value as "email" | "phone")}>
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="email">Email</TabsTrigger>
+                <TabsTrigger value="phone">Phone</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="email">
+                <Form {...emailForm}>
+                  <form onSubmit={emailForm.handleSubmit(handleEmailSubmit)} className="space-y-4">
+                    <FormField
+                      control={emailForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-700">Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder="Enter your email"
+                              className="bg-white/50"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {isSignUp && (
+                      <FormField
+                        control={emailForm.control}
+                        name="fullName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">Full Name</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Enter your full name"
+                                className="bg-white/50"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
-                )}
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700">Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Enter your password"
-                          className="bg-white/50"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  className="w-full bg-accent hover:bg-accent/90"
-                  disabled={isLoading}
-                >
-                  {isLoading
-                    ? "Please wait..."
-                    : isSignUp
-                    ? "Sign Up"
-                    : "Sign In"}
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="w-full text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  {isSignUp
-                    ? "Already have an account? Sign In"
-                    : "Don't have an account? Sign Up"}
-                </button>
-              </form>
-            </Form>
+                    <FormField
+                      control={emailForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-700">Password</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="Enter your password"
+                              className="bg-white/50"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      className="w-full bg-accent hover:bg-accent/90"
+                      disabled={isLoading}
+                    >
+                      {isLoading
+                        ? "Please wait..."
+                        : isSignUp
+                        ? "Sign Up"
+                        : "Sign In"}
+                    </Button>
+                  </form>
+                </Form>
+              </TabsContent>
+
+              <TabsContent value="phone">
+                <Form {...phoneForm}>
+                  <form onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)} className="space-y-4">
+                    <FormField
+                      control={phoneForm.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-700">Phone Number</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="tel"
+                              placeholder="+1234567890"
+                              className="bg-white/50"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {isSignUp && (
+                      <FormField
+                        control={phoneForm.control}
+                        name="fullName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">Full Name</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Enter your full name"
+                                className="bg-white/50"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                    <FormField
+                      control={phoneForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-700">Password</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="Enter your password"
+                              className="bg-white/50"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      className="w-full bg-accent hover:bg-accent/90"
+                      disabled={isLoading}
+                    >
+                      {isLoading
+                        ? "Please wait..."
+                        : isSignUp
+                        ? "Sign Up with Phone"
+                        : "Sign In with Phone"}
+                    </Button>
+                  </form>
+                </Form>
+              </TabsContent>
+            </Tabs>
+
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="w-full mt-4 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              {isSignUp
+                ? "Already have an account? Sign In"
+                : "Don't have an account? Sign Up"}
+            </button>
           </CardContent>
         </Card>
       </motion.div>
