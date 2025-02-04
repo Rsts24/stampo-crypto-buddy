@@ -29,9 +29,9 @@ const RewardCard = ({ type, stamps, isAvailable }: RewardCardProps) => {
       case "coffee":
         return "Free Coffee";
       case "crypto":
-        return "£1 in Crypto";
+        return "£0.50 in Crypto";
       case "both":
-        return "Coffee + Crypto";
+        return "Coffee + £1 in Crypto";
     }
   };
 
