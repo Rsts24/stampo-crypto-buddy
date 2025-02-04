@@ -1,16 +1,17 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import { Toaster } from "@/components/ui/sonner"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { AuthProvider } from "./contexts/AuthContext"
-import AuthCallback from "@/pages/AuthCallback"
-import Dashboard from "@/pages/Dashboard"
+import { AuthProvider } from "@/contexts/AuthContext"
+import { Toaster } from "@/components/ui/toaster"
+import Welcome from "@/pages/Welcome"
 import Index from "@/pages/Index"
 import Login from "@/pages/Login"
-import NotFound from "@/pages/NotFound"
+import VendorLogin from "@/pages/VendorLogin"
+import Dashboard from "@/pages/Dashboard"
 import Profile from "@/pages/Profile"
 import Rewards from "@/pages/Rewards"
 import VendorDashboard from "@/pages/VendorDashboard"
-import "./App.css"
+import AuthCallback from "@/pages/AuthCallback"
+import NotFound from "@/pages/NotFound"
 
 const queryClient = new QueryClient()
 
@@ -20,12 +21,13 @@ function App() {
       <Router>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Welcome />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/vendor-dashboard" element={<VendorDashboard />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/vendor-login" element={<VendorLogin />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/rewards" element={<Rewards />} />
+            <Route path="/vendor-dashboard" element={<VendorDashboard />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
