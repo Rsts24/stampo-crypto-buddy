@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,7 @@ import * as z from "zod";
 const Login = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
 
@@ -53,12 +54,26 @@ const Login = () => {
           description: "Please check your email to verify your account.",
         });
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { error: signInError, data } = await supabase.auth.signInWithPassword({
           email: values.email,
           password: values.password,
         });
 
         if (signInError) throw signInError;
+
+        // Fetch user profile to check if they're a vendor
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_vendor')
+          .eq('id', data.user.id)
+          .single();
+
+        // Redirect based on user role
+        if (profile?.is_vendor) {
+          navigate('/vendor-dashboard');
+        } else {
+          navigate('/dashboard');
+        }
 
         toast({
           title: "Welcome back!",
@@ -98,12 +113,26 @@ const Login = () => {
           description: "Please check your phone for the verification code.",
         });
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { error: signInError, data } = await supabase.auth.signInWithPassword({
           phone: values.phone,
           password: values.password,
         });
 
         if (signInError) throw signInError;
+
+        // Fetch user profile to check if they're a vendor
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_vendor')
+          .eq('id', data.user.id)
+          .single();
+
+        // Redirect based on user role
+        if (profile?.is_vendor) {
+          navigate('/vendor-dashboard');
+        } else {
+          navigate('/dashboard');
+        }
 
         toast({
           title: "Welcome back!",
