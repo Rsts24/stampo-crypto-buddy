@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DollarSign, Users, Coffee, Bitcoin } from "lucide-react"
-import { supabase } from "@/integrations/supabase/client"
+import { supabase } from "@/lib/supabase"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAuth } from "@/contexts/AuthContext"
+import { useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 
 interface DashboardMetrics {
   totalRevenue: number
@@ -12,21 +15,38 @@ interface DashboardMetrics {
 }
 
 export default function VendorDashboard() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!user) {
+      navigate("/login")
+    }
+  }, [user, navigate])
+
   const { data: vendorId } = useQuery({
-    queryKey: ["vendorId"],
+    queryKey: ["vendorId", user?.id],
+    enabled: !!user?.id, // Only run query when we have a user ID
     queryFn: async () => {
-      const { data: vendor } = await supabase
+      const { data: vendor, error } = await supabase
         .from("vendors")
         .select("id")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", user?.id)
         .single()
+
+      if (error) {
+        console.error("Error fetching vendor:", error)
+        return null
+      }
+
       return vendor?.id
     },
   })
 
   const { data: metrics } = useQuery({
     queryKey: ["vendorMetrics", vendorId],
-    enabled: !!vendorId,
+    enabled: !!vendorId, // Only run query when we have a vendor ID
     queryFn: async () => {
       const { data: transactions } = await supabase
         .from("transactions")
@@ -56,6 +76,10 @@ export default function VendorDashboard() {
       }
     },
   })
+
+  if (!user) {
+    return null // or a loading spinner
+  }
 
   return (
     <ScrollArea className="h-full">
