@@ -48,6 +48,53 @@ export type Database = {
         }
         Relationships: []
       }
+      rewards: {
+        Row: {
+          created_at: string
+          crypto_amount_in_pence: number | null
+          customer_id: string
+          expired_at: string | null
+          id: string
+          redeemed_at: string | null
+          stamps_used: number
+          status: Database["public"]["Enums"]["reward_status"]
+          type: Database["public"]["Enums"]["reward_type"]
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          crypto_amount_in_pence?: number | null
+          customer_id: string
+          expired_at?: string | null
+          id?: string
+          redeemed_at?: string | null
+          stamps_used: number
+          status?: Database["public"]["Enums"]["reward_status"]
+          type: Database["public"]["Enums"]["reward_type"]
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          crypto_amount_in_pence?: number | null
+          customer_id?: string
+          expired_at?: string | null
+          id?: string
+          redeemed_at?: string | null
+          stamps_used?: number
+          status?: Database["public"]["Enums"]["reward_status"]
+          type?: Database["public"]["Enums"]["reward_type"]
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewards_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stamps: {
         Row: {
           collected_at: string
@@ -70,6 +117,128 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "stamps_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_packages: {
+        Row: {
+          created_at: string
+          duration_months: number
+          id: string
+          name: string
+          price_in_pence: number
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          transaction_fee_percentage: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_months: number
+          id?: string
+          name: string
+          price_in_pence: number
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          transaction_fee_percentage: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_months?: number
+          id?: string
+          name?: string
+          price_in_pence?: number
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          transaction_fee_percentage?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount_in_pence: number
+          created_at: string
+          customer_id: string
+          fee_amount_in_pence: number
+          fee_percentage: number
+          id: string
+          stamps_earned: number
+          vendor_id: string
+        }
+        Insert: {
+          amount_in_pence: number
+          created_at?: string
+          customer_id: string
+          fee_amount_in_pence: number
+          fee_percentage: number
+          id?: string
+          stamps_earned?: number
+          vendor_id: string
+        }
+        Update: {
+          amount_in_pence?: number
+          created_at?: string
+          customer_id?: string
+          fee_amount_in_pence?: number
+          fee_percentage?: number
+          id?: string
+          stamps_earned?: number
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_subscriptions: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          package_id: string
+          start_date: string
+          status: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          package_id: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          package_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_subscriptions_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_subscriptions_vendor_id_fkey"
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"
@@ -112,7 +281,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      reward_status: "earned" | "redeemed" | "expired"
+      reward_type: "coffee" | "crypto" | "both"
+      subscription_tier: "free_trial" | "monthly" | "biannual" | "annual"
     }
     CompositeTypes: {
       [_ in never]: never
