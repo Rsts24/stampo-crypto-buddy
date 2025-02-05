@@ -64,7 +64,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {stamps < 5 ? "Free Coffee" : stamps < 10 ? "£1 Crypto" : "Both"}
+                {stamps < 6 ? "Free Coffee" : stamps < 10 ? "0.01% Share" : "Both"}
               </div>
             </CardContent>
           </Card>
@@ -75,7 +75,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {stamps < 5 ? 5 - stamps : stamps < 10 ? 10 - stamps : 15 - stamps}
+                {stamps < 6 ? 6 - stamps : stamps < 10 ? 10 - stamps : 15 - stamps}
               </div>
             </CardContent>
           </Card>
@@ -106,7 +106,7 @@ const Dashboard = () => {
             </Link>
           </div>
           <div className="space-y-4">
-            <RewardCard type="coffee" stamps={5} isAvailable={stamps >= 5} />
+            <RewardCard type="coffee" stamps={6} isAvailable={stamps >= 6} />
             <RewardCard type="crypto" stamps={10} isAvailable={stamps >= 10} />
             <RewardCard type="both" stamps={15} isAvailable={stamps >= 15} />
           </div>

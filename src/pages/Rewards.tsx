@@ -24,11 +24,11 @@ const Rewards = () => {
         <div className="grid gap-6">
           <div className="space-y-2">
             <h2 className="text-xl font-semibold">Coffee Rewards</h2>
-            <RewardCard type="coffee" stamps={5} isAvailable={true} />
+            <RewardCard type="coffee" stamps={6} isAvailable={true} />
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold">Crypto Rewards</h2>
+            <h2 className="text-xl font-semibold">Share Rewards</h2>
             <RewardCard type="crypto" stamps={10} isAvailable={true} />
           </div>
 
