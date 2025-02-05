@@ -1,13 +1,15 @@
 import { motion } from "framer-motion";
-import { Coffee, Bitcoin } from "lucide-react";
+import { Coffee, Bitcoin, Clock } from "lucide-react";
+import { format, addMonths } from "date-fns";
 
 interface RewardCardProps {
   type: "coffee" | "crypto" | "both";
   stamps: number;
   isAvailable: boolean;
+  expiryDate?: Date;
 }
 
-const RewardCard = ({ type, stamps, isAvailable }: RewardCardProps) => {
+const RewardCard = ({ type, stamps, isAvailable, expiryDate = addMonths(new Date(), 1) }: RewardCardProps) => {
   const getIcon = () => {
     switch (type) {
       case "coffee":
@@ -35,6 +37,17 @@ const RewardCard = ({ type, stamps, isAvailable }: RewardCardProps) => {
     }
   };
 
+  const getDescription = () => {
+    switch (type) {
+      case "coffee":
+        return "Any hot or cold drink up to £5";
+      case "crypto":
+        return "Share in vendor's monthly revenue";
+      case "both":
+        return "Combo of drink and increased share";
+    }
+  };
+
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -52,9 +65,16 @@ const RewardCard = ({ type, stamps, isAvailable }: RewardCardProps) => {
         >
           {getIcon()}
         </div>
-        <div>
+        <div className="flex-1">
           <h3 className="font-semibold">{getTitle()}</h3>
           <p className="text-sm text-muted-foreground">{stamps} stamps required</p>
+          <p className="text-xs text-muted-foreground mt-1">{getDescription()}</p>
+        </div>
+        <div className="text-right">
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Clock className="w-4 h-4 mr-1" />
+            <span>Expires {format(expiryDate, 'MMM d')}</span>
+          </div>
         </div>
       </div>
     </motion.div>
