@@ -1,24 +1,28 @@
 import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DollarSign, Users, Coffee, Bitcoin } from "lucide-react"
+import { DollarSign, Users, Coffee, Bitcoin, TrendingUp } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { format } from "date-fns"
 
 interface DashboardMetrics {
   totalRevenue: number
   totalTransactions: number
   activeStamps: number
   totalRewards: number
+  revenueSharing: {
+    totalShared: number
+    activeParticipants: number
+  }
 }
 
 export default function VendorDashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!user) {
       navigate("/login")
@@ -27,7 +31,7 @@ export default function VendorDashboard() {
 
   const { data: vendorId } = useQuery({
     queryKey: ["vendorId", user?.id],
-    enabled: !!user?.id, // Only run query when we have a user ID
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data: vendor, error } = await supabase
         .from("vendors")
@@ -46,11 +50,11 @@ export default function VendorDashboard() {
 
   const { data: metrics } = useQuery({
     queryKey: ["vendorMetrics", vendorId],
-    enabled: !!vendorId, // Only run query when we have a vendor ID
+    enabled: !!vendorId,
     queryFn: async () => {
       const { data: transactions } = await supabase
         .from("transactions")
-        .select("amount_in_pence, stamps_earned")
+        .select("amount_in_pence, stamps_earned, created_at")
         .eq("vendor_id", vendorId)
 
       const { data: rewards } = await supabase
@@ -58,34 +62,60 @@ export default function VendorDashboard() {
         .select("*")
         .eq("vendor_id", vendorId)
 
+      const { data: cryptoRewards } = await supabase
+        .from("rewards")
+        .select("*")
+        .eq("vendor_id", vendorId)
+        .in("type", ["crypto", "both"])
+        .not("crypto_amount_in_pence", "is", null)
+
       const totalRevenue = transactions?.reduce(
         (sum, tx) => sum + tx.amount_in_pence,
         0
       ) || 0
+      
       const totalTransactions = transactions?.length || 0
+      
       const activeStamps =
         (transactions?.reduce((sum, tx) => sum + tx.stamps_earned, 0) || 0) -
         (rewards?.reduce((sum, reward) => sum + reward.stamps_used, 0) || 0)
+      
       const totalRewards = rewards?.length || 0
+
+      const totalShared = cryptoRewards?.reduce(
+        (sum, reward) => sum + (reward.crypto_amount_in_pence || 0),
+        0
+      ) || 0
+
+      const activeParticipants = new Set(
+        cryptoRewards?.map((reward) => reward.customer_id)
+      ).size
 
       return {
         totalRevenue,
         totalTransactions,
         activeStamps,
         totalRewards,
+        revenueSharing: {
+          totalShared,
+          activeParticipants,
+        },
       }
     },
   })
 
   if (!user) {
-    return null // or a loading spinner
+    return null
   }
 
   return (
     <ScrollArea className="h-full">
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Vendor Dashboard</h2>
+          <p className="text-sm text-muted-foreground">
+            Last updated: {format(new Date(), "MMM d, yyyy HH:mm")}
+          </p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
@@ -97,21 +127,12 @@ export default function VendorDashboard() {
               <div className="text-2xl font-bold">
                 £{((metrics?.totalRevenue || 0) / 100).toFixed(2)}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                From {metrics?.totalTransactions || 0} transactions
+              </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Transactions
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metrics?.totalTransactions || 0}
-              </div>
-            </CardContent>
-          </Card>
+          
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Stamps</CardTitle>
@@ -121,17 +142,39 @@ export default function VendorDashboard() {
               <div className="text-2xl font-bold">
                 {metrics?.activeStamps || 0}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Unredeemed stamps in circulation
+              </p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Rewards</CardTitle>
+              <CardTitle className="text-sm font-medium">Revenue Shared</CardTitle>
               <Bitcoin className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                £{((metrics?.revenueSharing.totalShared || 0) / 100).toFixed(2)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                With {metrics?.revenueSharing.activeParticipants || 0} participants
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Rewards Issued</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {metrics?.totalRewards || 0}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Total rewards claimed
+              </p>
             </CardContent>
           </Card>
         </div>
