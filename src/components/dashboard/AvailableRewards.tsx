@@ -27,7 +27,7 @@ const AvailableRewards = ({ stamps }: AvailableRewardsProps) => {
           isAvailable={stamps >= 12} 
         />
         <RewardCard 
-          type="platform_shares" 
+          type="both" 
           stamps={16} 
           isAvailable={stamps >= 16} 
         />

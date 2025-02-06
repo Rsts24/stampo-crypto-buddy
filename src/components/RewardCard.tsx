@@ -52,7 +52,7 @@ const RewardCard = ({ type, stamps, isAvailable, expiryDate = addMonths(new Date
       case "crypto":
         return "Share in vendor's monthly revenue";
       case "both":
-        return "Combo of drink and trading platform shares";
+        return "Combo of drink and £1 worth of shares on your chosen platform";
       case "platform_shares":
         return "£1 worth of shares on your chosen platform";
     }
