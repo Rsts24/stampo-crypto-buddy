@@ -9,7 +9,7 @@ interface StampsCollectionProps {
   onEarnStamp: () => void;
 }
 
-const StampsCollection = ({ stamps, totalStamps, onEarnStamp }: StampsCollectionProps) => {
+const StampsCollection = ({ stamps, totalStamps = 16, onEarnStamp }: StampsCollectionProps) => {
   const stampCards = Array.from({ length: totalStamps }, (_, i) => (
     <StampCard key={i} isCollected={i < stamps} index={i} />
   ));
@@ -21,7 +21,7 @@ const StampsCollection = ({ stamps, totalStamps, onEarnStamp }: StampsCollection
         <p className="text-sm text-muted-foreground">Stamps expire 6 months after collection</p>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-5 gap-4">{stampCards}</div>
+        <div className="grid grid-cols-4 gap-4">{stampCards}</div>
         <RewardProgress 
           current={stamps} 
           total={totalStamps} 

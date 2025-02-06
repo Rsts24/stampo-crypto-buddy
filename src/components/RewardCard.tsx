@@ -1,15 +1,19 @@
 import { motion } from "framer-motion";
 import { Coffee, Bitcoin, Clock } from "lucide-react";
 import { format, addMonths } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
 
 interface RewardCardProps {
-  type: "coffee" | "crypto" | "both";
+  type: "coffee" | "crypto" | "both" | "platform_shares";
   stamps: number;
   isAvailable: boolean;
   expiryDate?: Date;
 }
 
 const RewardCard = ({ type, stamps, isAvailable, expiryDate = addMonths(new Date(), 1) }: RewardCardProps) => {
+  const [selectedPlatform, setSelectedPlatform] = useState<string>("");
+
   const getIcon = () => {
     switch (type) {
       case "coffee":
@@ -23,6 +27,8 @@ const RewardCard = ({ type, stamps, isAvailable, expiryDate = addMonths(new Date
             <Bitcoin className="w-6 h-6" />
           </div>
         );
+      case "platform_shares":
+        return <Bitcoin className="w-6 h-6" />;
     }
   };
 
@@ -33,7 +39,9 @@ const RewardCard = ({ type, stamps, isAvailable, expiryDate = addMonths(new Date
       case "crypto":
         return "0.01% Vendor Share";
       case "both":
-        return "Coffee + 0.02% Vendor Share";
+        return "Coffee + £1 Platform Shares";
+      case "platform_shares":
+        return "£1 Platform Shares";
     }
   };
 
@@ -44,9 +52,13 @@ const RewardCard = ({ type, stamps, isAvailable, expiryDate = addMonths(new Date
       case "crypto":
         return "Share in vendor's monthly revenue";
       case "both":
-        return "Combo of drink and increased share";
+        return "Combo of drink and trading platform shares";
+      case "platform_shares":
+        return "£1 worth of shares on your chosen platform";
     }
   };
+
+  const showPlatformSelect = type === "both" || type === "platform_shares";
 
   return (
     <motion.div
@@ -69,6 +81,19 @@ const RewardCard = ({ type, stamps, isAvailable, expiryDate = addMonths(new Date
           <h3 className="font-semibold">{getTitle()}</h3>
           <p className="text-sm text-muted-foreground">{stamps} stamps required</p>
           <p className="text-xs text-muted-foreground mt-1">{getDescription()}</p>
+          {showPlatformSelect && isAvailable && (
+            <div className="mt-2">
+              <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select trading platform" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="trading212">Trading 212</SelectItem>
+                  <SelectItem value="freetrade">Freetrade</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <div className="text-right">
           <div className="flex items-center text-sm text-muted-foreground">

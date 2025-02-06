@@ -56,6 +56,7 @@ export type Database = {
           expired_at: string | null
           id: string
           redeemed_at: string | null
+          selected_platform: string | null
           stamps_used: number
           status: Database["public"]["Enums"]["reward_status"]
           type: Database["public"]["Enums"]["reward_type"]
@@ -68,6 +69,7 @@ export type Database = {
           expired_at?: string | null
           id?: string
           redeemed_at?: string | null
+          selected_platform?: string | null
           stamps_used: number
           status?: Database["public"]["Enums"]["reward_status"]
           type: Database["public"]["Enums"]["reward_type"]
@@ -80,6 +82,7 @@ export type Database = {
           expired_at?: string | null
           id?: string
           redeemed_at?: string | null
+          selected_platform?: string | null
           stamps_used?: number
           status?: Database["public"]["Enums"]["reward_status"]
           type?: Database["public"]["Enums"]["reward_type"]
@@ -282,7 +285,7 @@ export type Database = {
     }
     Enums: {
       reward_status: "earned" | "redeemed" | "expired"
-      reward_type: "coffee" | "crypto" | "both"
+      reward_type: "coffee" | "crypto" | "both" | "platform_shares"
       subscription_tier: "free_trial" | "monthly" | "biannual" | "annual"
     }
     CompositeTypes: {

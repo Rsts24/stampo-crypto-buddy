@@ -23,13 +23,13 @@ const AvailableRewards = ({ stamps }: AvailableRewardsProps) => {
         />
         <RewardCard 
           type="crypto" 
-          stamps={10} 
-          isAvailable={stamps >= 10} 
+          stamps={12} 
+          isAvailable={stamps >= 12} 
         />
         <RewardCard 
-          type="both" 
-          stamps={15} 
-          isAvailable={stamps >= 15} 
+          type="platform_shares" 
+          stamps={16} 
+          isAvailable={stamps >= 16} 
         />
       </div>
     </div>
