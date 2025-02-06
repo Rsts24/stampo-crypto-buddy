@@ -1,0 +1,1 @@
+export type RewardType = "coffee" | "crypto" | "both" | "platform_shares";
