@@ -24,7 +24,7 @@ export const AuthFormFields = ({ type, isSignUp, form }: AuthFormFieldsProps) =>
         name={type === "email" ? "email" : "phone"}
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-gray-700">
+            <FormLabel className="text-gray-300">
               {type === "email" ? "Email" : "Phone Number"}
             </FormLabel>
             <FormControl>
@@ -33,7 +33,7 @@ export const AuthFormFields = ({ type, isSignUp, form }: AuthFormFieldsProps) =>
                 placeholder={
                   type === "email" ? "Enter your email" : "+1234567890"
                 }
-                className="bg-white/50"
+                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
                 {...field}
               />
             </FormControl>
@@ -48,11 +48,11 @@ export const AuthFormFields = ({ type, isSignUp, form }: AuthFormFieldsProps) =>
           name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-gray-700">Full Name</FormLabel>
+              <FormLabel className="text-gray-300">Full Name</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Enter your full name"
-                  className="bg-white/50"
+                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
                   {...field}
                 />
               </FormControl>
@@ -67,12 +67,12 @@ export const AuthFormFields = ({ type, isSignUp, form }: AuthFormFieldsProps) =>
         name="password"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-gray-700">Password</FormLabel>
+            <FormLabel className="text-gray-300">Password</FormLabel>
             <FormControl>
               <Input
                 type="password"
                 placeholder="Enter your password"
-                className="bg-white/50"
+                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
                 {...field}
               />
             </FormControl>

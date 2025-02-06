@@ -143,19 +143,16 @@ const VendorLogin = () => {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{
-        background: "linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%)"
-      }}
+      className="min-h-screen flex items-center justify-center p-4 bg-black"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
+        <Card className="bg-gray-900/90 backdrop-blur-sm shadow-xl border-gray-800">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center font-bold text-gray-800">
+            <CardTitle className="text-2xl text-center font-bold text-white">
               {isSignUp ? "Create Vendor Account" : "Vendor Login"}
             </CardTitle>
           </CardHeader>
@@ -163,21 +160,23 @@ const VendorLogin = () => {
             {isSignUp && (
               <div className="space-y-4 mb-4">
                 <div className="space-y-2">
-                  <Label htmlFor="businessName">Business Name</Label>
+                  <Label htmlFor="businessName" className="text-gray-300">Business Name</Label>
                   <Input
                     id="businessName"
                     placeholder="Enter your business name"
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
+                    className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="businessAddress">Business Address</Label>
+                  <Label htmlFor="businessAddress" className="text-gray-300">Business Address</Label>
                   <Input
                     id="businessAddress"
                     placeholder="Enter your business address"
                     value={businessAddress}
                     onChange={(e) => setBusinessAddress(e.target.value)}
+                    className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -193,7 +192,7 @@ const VendorLogin = () => {
             <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
-              className="w-full mt-4 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              className="w-full mt-4 text-sm text-gray-400 hover:text-gray-200 transition-colors"
             >
               {isSignUp
                 ? "Already have an account? Sign In"
