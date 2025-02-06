@@ -13,7 +13,6 @@ const Index = () => {
   const totalStamps = 15;
   const { toast } = useToast();
 
-  // Temporary function to simulate earning stamps
   const handleEarnStamp = () => {
     if (stamps < totalStamps) {
       setStamps(prev => prev + 1);
@@ -35,7 +34,6 @@ const Index = () => {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-4xl mx-auto space-y-8"
       >
-        {/* Header */}
         <div className="flex justify-between items-center">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold">Digital Stamps</h1>
@@ -46,7 +44,6 @@ const Index = () => {
           </Button>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -81,7 +78,6 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Stamp Collection */}
         <Card className="bg-card backdrop-blur-md shadow-lg">
           <CardHeader>
             <CardTitle>Your Stamps</CardTitle>
@@ -93,14 +89,12 @@ const Index = () => {
               total={totalStamps} 
               label="Progress to next reward" 
             />
-            {/* Temporary button to simulate earning stamps */}
             <Button onClick={handleEarnStamp} className="w-full">
               Earn a Stamp (Demo)
             </Button>
           </CardContent>
         </Card>
 
-        {/* Available Rewards */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Available Rewards</h2>
           <div className="space-y-4">

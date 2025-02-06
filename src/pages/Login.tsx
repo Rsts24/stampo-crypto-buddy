@@ -152,19 +152,16 @@ const Login = () => {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{
-        background: "linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%)"
-      }}
+      className="min-h-screen flex items-center justify-center p-4 bg-background"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
+        <Card className="bg-card/80 backdrop-blur-sm shadow-xl border-border">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center font-bold text-gray-800">
+            <CardTitle className="text-2xl text-center font-bold text-card-foreground">
               {isSignUp ? "Create Account" : "Welcome Back"}
             </CardTitle>
           </CardHeader>
@@ -179,7 +176,7 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
-              className="w-full mt-4 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              className="w-full mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {isSignUp
                 ? "Already have an account? Sign In"
