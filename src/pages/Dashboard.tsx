@@ -2,25 +2,25 @@ import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { subMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { TOTAL_STAMPS, STAMP_VALIDITY_MONTHS, getNextMilestone } from "@/lib/rewards";
 import DashboardMetrics from "@/components/dashboard/DashboardMetrics";
 import StampsCollection from "@/components/dashboard/StampsCollection";
 import AvailableRewards from "@/components/dashboard/AvailableRewards";
+import StampCode from "@/components/dashboard/StampCode";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Count this user's stamps that haven't expired yet
   const { data: stampCount = 0 } = useQuery({
     queryKey: ["stamps", user?.id],
     enabled: !!user,
+    // Check every few seconds so a stamp the vendor adds shows up straight away
+    refetchInterval: 5000,
     queryFn: async () => {
       const { count, error } = await supabase
         .from("stamps")
@@ -50,37 +50,9 @@ const Dashboard = () => {
     },
   });
 
-  // Demo button: saves a real stamp to the database for the signed-in user
-  const earnStamp = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("stamps").insert({ user_id: user!.id });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stamps", user?.id] });
-      toast({
-        title: "Stamp Earned!",
-        description: "You're getting closer to your next reward!",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Couldn't add stamp",
-        description: error.message,
-      });
-    },
-  });
-
   const stamps = Math.min(stampCount, TOTAL_STAMPS);
   const next = getNextMilestone(stamps);
   const stampsToNext = next === null ? 0 : next - stamps;
-
-  const handleEarnStamp = () => {
-    if (stamps < TOTAL_STAMPS && !earnStamp.isPending) {
-      earnStamp.mutate();
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-6">
@@ -107,12 +79,9 @@ const Dashboard = () => {
           nextMilestone={stampsToNext}
         />
 
-        <StampsCollection
-          stamps={stamps}
-          totalStamps={TOTAL_STAMPS}
-          onEarnStamp={handleEarnStamp}
-          isEarning={earnStamp.isPending}
-        />
+        {user && <StampCode userId={user.id} />}
+
+        <StampsCollection stamps={stamps} totalStamps={TOTAL_STAMPS} />
 
         <AvailableRewards stamps={stamps} />
       </motion.div>
