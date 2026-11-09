@@ -11,6 +11,7 @@ import DashboardMetrics from "@/components/dashboard/DashboardMetrics";
 import StampsCollection from "@/components/dashboard/StampsCollection";
 import AvailableRewards from "@/components/dashboard/AvailableRewards";
 import StampCode from "@/components/dashboard/StampCode";
+import VerifyPhoneCard from "@/components/dashboard/VerifyPhoneCard";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -79,7 +80,8 @@ const Dashboard = () => {
           nextMilestone={stampsToNext}
         />
 
-        {user && <StampCode userId={user.id} />}
+        {/* Customers confirm a phone number once before they can collect stamps */}
+        {user?.phone_confirmed_at ? <StampCode userId={user.id} /> : <VerifyPhoneCard />}
 
         <StampsCollection stamps={stamps} totalStamps={TOTAL_STAMPS} />
 

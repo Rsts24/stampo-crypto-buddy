@@ -35,7 +35,11 @@ const GiveStampCard = ({ vendorId }: GiveStampCardProps) => {
       toast({ title: "Stamp added", description: "The customer's card has been updated." });
     },
     onError: (error: Error) => {
-      toast({ variant: "destructive", title: "Couldn't add stamp", description: error.message });
+      // The database refuses stamps for customers who haven't confirmed their phone yet
+      const description = /row-level security/i.test(error.message)
+        ? "This customer needs to confirm their phone number in the Stampo app first."
+        : error.message;
+      toast({ variant: "destructive", title: "Couldn't add stamp", description });
     },
   });
 
