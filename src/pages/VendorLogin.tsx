@@ -83,11 +83,11 @@ const VendorLogin = () => {
           description: "You have successfully signed in.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Authentication error",
-        description: error.message || "An unexpected error occurred",
+        description: (error as Error).message || "An unexpected error occurred",
       });
     } finally {
       setIsLoading(false);
@@ -130,11 +130,11 @@ const VendorLogin = () => {
           description: "You have successfully signed in.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Authentication error",
-        description: error.message || "An unexpected error occurred",
+        description: (error as Error).message || "An unexpected error occurred",
       });
     } finally {
       setIsLoading(false);

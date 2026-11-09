@@ -57,21 +57,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       });
       
-      if (error) {
-        console.error('Sign in error:', error);
-        toast({
-          variant: "destructive",
-          title: "Authentication error",
-          description: error.message
-        });
-        throw error;
-      }
-    } catch (error: any) {
+      if (error) throw error;
+    } catch (error) {
       console.error('Sign in error:', error);
       toast({
         variant: "destructive",
         title: "Authentication error",
-        description: error.message || "Failed to sign in. Please try again."
+        description: (error as Error).message || "Failed to sign in. Please try again."
       });
       throw error;
     }
@@ -80,22 +72,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Sign out error:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: error.message
-        });
-        throw error;
-      }
+      if (error) throw error;
       navigate('/login');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Sign out error:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to sign out. Please try again."
+        description: (error as Error).message || "Failed to sign out. Please try again."
       });
       throw error;
     }

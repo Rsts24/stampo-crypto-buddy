@@ -17,7 +17,7 @@ const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
 
   if (user) {
-    return <Navigate to="/profile" />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleEmailSubmit = async (values: z.infer<typeof emailFormSchema>) => {
@@ -80,11 +80,11 @@ const Login = () => {
           description: "You have successfully signed in.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Authentication error",
-        description: error.message || "An unexpected error occurred",
+        description: (error as Error).message || "An unexpected error occurred",
       });
     } finally {
       setIsLoading(false);
@@ -139,11 +139,11 @@ const Login = () => {
           description: "You have successfully signed in.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Authentication error",
-        description: error.message || "An unexpected error occurred",
+        description: (error as Error).message || "An unexpected error occurred",
       });
     } finally {
       setIsLoading(false);

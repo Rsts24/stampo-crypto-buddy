@@ -9,6 +9,7 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { PersonalInfoForm, profileFormSchema } from "@/components/profile/PersonalInfoForm";
 import { RevolutConnect } from "@/components/profile/RevolutConnect";
 import { z } from "zod";
+import { format } from "date-fns";
 
 const Profile = () => {
   const { user, signOut } = useAuth();
@@ -16,7 +17,7 @@ const Profile = () => {
   const queryClient = useQueryClient();
 
   const { data: profile, isLoading } = useQuery({
-    queryKey: ["profile"],
+    queryKey: ["profile", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -34,7 +35,15 @@ const Profile = () => {
     mutationFn: async (values: z.infer<typeof profileFormSchema>) => {
       const { error } = await supabase
         .from("profiles")
-        .update(values)
+        .update({
+          ...values,
+          // Store dates as YYYY-MM-DD to match the database column
+          date_of_birth: values.date_of_birth
+            ? format(values.date_of_birth, "yyyy-MM-dd")
+            : null,
+          mobile_number: values.mobile_number || null,
+          address: values.address || null,
+        })
         .eq("id", user?.id);
 
       if (error) throw error;
@@ -44,13 +53,13 @@ const Profile = () => {
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update profile",
+        description: (error as Error).message || "Failed to update profile",
       });
     },
   });
@@ -62,11 +71,11 @@ const Profile = () => {
         title: "Signed out successfully",
         description: "You have been logged out of your account",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error signing out",
-        description: error.message || "Please try again later",
+        description: (error as Error).message || "Please try again later",
       });
     }
   };
@@ -89,10 +98,11 @@ const Profile = () => {
     date_of_birth: profile?.date_of_birth ? new Date(profile.date_of_birth) : undefined,
     address: profile?.address || "",
     preferred_language: profile?.preferred_language || "en",
-    notification_preferences: profile?.notification_preferences || {
-      email: true,
-      sms: true,
-    },
+    notification_preferences:
+      (profile?.notification_preferences as { email: boolean; sms: boolean } | null) || {
+        email: true,
+        sms: true,
+      },
   };
 
   return (

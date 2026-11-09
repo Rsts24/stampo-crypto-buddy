@@ -10,9 +10,10 @@ export const profileFormSchema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
   mobile_number: z
     .string()
-    .regex(/^\+[1-9]\d{1,14}$/, "Please enter a valid phone number with country code"),
+    .regex(/^\+[1-9]\d{1,14}$/, "Please enter a valid phone number with country code")
+    .or(z.literal("")),
   date_of_birth: z.date().optional(),
-  address: z.string().min(5, "Address must be at least 5 characters"),
+  address: z.string().min(5, "Address must be at least 5 characters").or(z.literal("")),
   preferred_language: z.string(),
   notification_preferences: z.object({
     email: z.boolean(),
