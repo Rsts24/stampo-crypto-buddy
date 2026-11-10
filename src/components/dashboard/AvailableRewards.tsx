@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import RewardCard from "@/components/RewardCard";
+import { REWARD_TIERS } from "@/lib/rewards";
 
 interface AvailableRewardsProps {
   stamps: number;
@@ -16,21 +17,14 @@ const AvailableRewards = ({ stamps }: AvailableRewardsProps) => {
         </Link>
       </div>
       <div className="space-y-4">
-        <RewardCard 
-          type="coffee" 
-          stamps={6} 
-          isAvailable={stamps >= 6} 
-        />
-        <RewardCard 
-          type="crypto" 
-          stamps={12} 
-          isAvailable={stamps >= 12} 
-        />
-        <RewardCard 
-          type="both" 
-          stamps={16} 
-          isAvailable={stamps >= 16} 
-        />
+        {REWARD_TIERS.map((tier) => (
+          <RewardCard
+            key={tier.type}
+            type={tier.type}
+            stamps={tier.stamps}
+            isAvailable={stamps >= tier.stamps}
+          />
+        ))}
       </div>
     </div>
   );

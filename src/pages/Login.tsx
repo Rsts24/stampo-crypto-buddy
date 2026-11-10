@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { AuthTabs } from "@/components/auth/AuthTabs";
-import { emailFormSchema, phoneFormSchema } from "@/components/auth/AuthForm";
+import { AuthForm, emailFormSchema } from "@/components/auth/AuthForm";
+import PhoneCodeForm from "@/components/auth/PhoneCodeForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import * as z from "zod";
 
 const Login = () => {
@@ -15,9 +16,10 @@ const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [tab, setTab] = useState("phone");
 
   if (user) {
-    return <Navigate to="/profile" />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleEmailSubmit = async (values: z.infer<typeof emailFormSchema>) => {
@@ -80,70 +82,11 @@ const Login = () => {
           description: "You have successfully signed in.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Authentication error",
-        description: error.message || "An unexpected error occurred",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePhoneSubmit = async (values: z.infer<typeof phoneFormSchema>) => {
-    try {
-      setIsLoading(true);
-
-      if (isSignUp) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          phone: values.phone,
-          password: values.password,
-          options: {
-            data: {
-              full_name: values.fullName,
-            },
-          },
-        });
-
-        if (signUpError) throw signUpError;
-
-        toast({
-          title: "Verification code sent",
-          description: "Please check your phone for the verification code.",
-        });
-      } else {
-        const { error: signInError, data } = await supabase.auth.signInWithPassword({
-          phone: values.phone,
-          password: values.password,
-        });
-
-        if (signInError) throw signInError;
-
-        // Fetch user profile to check if they're a vendor
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_vendor')
-          .eq('id', data.user.id)
-          .single();
-
-        // Redirect based on user role
-        if (profile?.is_vendor) {
-          navigate('/vendor-dashboard');
-        } else {
-          navigate('/dashboard');
-        }
-
-        toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
-        });
-      }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Authentication error",
-        description: error.message || "An unexpected error occurred",
+        description: (error as Error).message || "An unexpected error occurred",
       });
     } finally {
       setIsLoading(false);
@@ -162,26 +105,42 @@ const Login = () => {
         <Card className="bg-card/80 backdrop-blur-sm shadow-xl border-border">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center font-bold text-card-foreground">
-              {isSignUp ? "Create Account" : "Welcome Back"}
+              {tab === "email" && isSignUp ? "Create Account" : "Welcome to Stampo"}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <AuthTabs
-              isSignUp={isSignUp}
-              isLoading={isLoading}
-              onEmailSubmit={handleEmailSubmit}
-              onPhoneSubmit={handlePhoneSubmit}
-            />
+            <Tabs value={tab} onValueChange={setTab}>
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="phone">Phone</TabsTrigger>
+                <TabsTrigger value="email">Email</TabsTrigger>
+              </TabsList>
 
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="w-full mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {isSignUp
-                ? "Already have an account? Sign In"
-                : "Don't have an account? Sign Up"}
-            </button>
+              {/* Same steps whether you're new or coming back: number, then code */}
+              <TabsContent value="phone" className="space-y-3">
+                <PhoneCodeForm mode="signin" />
+                <p className="text-xs text-center text-muted-foreground">
+                  New here? This creates your account. No password needed.
+                </p>
+              </TabsContent>
+
+              <TabsContent value="email">
+                <AuthForm
+                  type="email"
+                  isSignUp={isSignUp}
+                  onSubmit={handleEmailSubmit}
+                  isLoading={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="w-full mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {isSignUp
+                    ? "Already have an account? Sign In"
+                    : "Don't have an account? Sign Up"}
+                </button>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </motion.div>

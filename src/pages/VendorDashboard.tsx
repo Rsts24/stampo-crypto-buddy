@@ -6,7 +6,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { format } from "date-fns"
+import { format, subMonths } from "date-fns"
+import GiveStampCard from "@/components/vendor/GiveStampCard"
+import { STAMP_VALIDITY_MONTHS } from "@/lib/rewards"
 
 interface DashboardMetrics {
   totalRevenue: number
@@ -57,6 +59,13 @@ export default function VendorDashboard() {
         .select("amount_in_pence, stamps_earned, created_at")
         .eq("vendor_id", vendorId)
 
+      // Stamps this shop has given out that haven't expired yet
+      const { count: stampsGiven } = await supabase
+        .from("stamps")
+        .select("id", { count: "exact", head: true })
+        .eq("vendor_id", vendorId)
+        .gte("collected_at", subMonths(new Date(), STAMP_VALIDITY_MONTHS).toISOString())
+
       const { data: rewards } = await supabase
         .from("rewards")
         .select("*")
@@ -76,9 +85,7 @@ export default function VendorDashboard() {
       
       const totalTransactions = transactions?.length || 0
       
-      const activeStamps =
-        (transactions?.reduce((sum, tx) => sum + tx.stamps_earned, 0) || 0) -
-        (rewards?.reduce((sum, reward) => sum + reward.stamps_used, 0) || 0)
+      const activeStamps = stampsGiven ?? 0
       
       const totalRewards = rewards?.length || 0
 
@@ -117,6 +124,13 @@ export default function VendorDashboard() {
             Last updated: {format(new Date(), "MMM d, yyyy HH:mm")}
           </p>
         </div>
+        {vendorId ? (
+          <GiveStampCard vendorId={vendorId} />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            We couldn't find a shop linked to this account, so you can't give stamps yet.
+          </p>
+        )}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -143,7 +157,7 @@ export default function VendorDashboard() {
                 {metrics?.activeStamps || 0}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Unredeemed stamps in circulation
+                Given out in the last {STAMP_VALIDITY_MONTHS} months
               </p>
             </CardContent>
           </Card>

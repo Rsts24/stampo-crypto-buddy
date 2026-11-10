@@ -31,12 +31,12 @@ const AuthCallback = () => {
           });
           navigate("/login");
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error("Auth redirect error:", error);
         toast({
           variant: "destructive",
           title: "Authentication error",
-          description: error.message || "An unexpected error occurred",
+          description: (error as Error).message || "An unexpected error occurred",
         });
         navigate("/login");
       }
