@@ -31,13 +31,13 @@ export default function VendorDashboard() {
     }
   }, [user, navigate])
 
-  const { data: vendorId } = useQuery({
-    queryKey: ["vendorId", user?.id],
+  const { data: vendor, isLoading: vendorLoading } = useQuery({
+    queryKey: ["vendor", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       const { data: vendor, error } = await supabase
         .from("vendors")
-        .select("id")
+        .select("id, business_name, approved")
         .eq("user_id", user?.id)
         .single()
 
@@ -46,9 +46,10 @@ export default function VendorDashboard() {
         return null
       }
 
-      return vendor?.id
+      return vendor
     },
   })
+  const vendorId = vendor?.id
 
   const { data: metrics } = useQuery({
     queryKey: ["vendorMetrics", vendorId],
@@ -124,8 +125,20 @@ export default function VendorDashboard() {
             Last updated: {format(new Date(), "MMM d, yyyy HH:mm")}
           </p>
         </div>
-        {vendorId ? (
-          <GiveStampCard vendorId={vendorId} />
+        {vendorLoading ? null : vendor?.approved ? (
+          <GiveStampCard vendorId={vendor.id} />
+        ) : vendor ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Waiting for approval</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Thanks for signing up {vendor.business_name}! We check every new shop before it
+                can give out stamps. You'll be able to start once your shop has been approved.
+              </p>
+            </CardContent>
+          </Card>
         ) : (
           <p className="text-sm text-muted-foreground">
             We couldn't find a shop linked to this account, so you can't give stamps yet.

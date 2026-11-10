@@ -252,6 +252,7 @@ export type Database = {
       vendors: {
         Row: {
           address: string | null
+          approved: boolean
           business_name: string
           created_at: string
           id: string
@@ -260,6 +261,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          approved?: boolean
           business_name: string
           created_at?: string
           id?: string
@@ -268,6 +270,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          approved?: boolean
           business_name?: string
           created_at?: string
           id?: string
