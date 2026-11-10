@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { AuthTabs } from "@/components/auth/AuthTabs";
-import { emailFormSchema, phoneFormSchema } from "@/components/auth/AuthForm";
+import { AuthForm, emailFormSchema } from "@/components/auth/AuthForm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import * as z from "zod";
@@ -29,40 +28,22 @@ const VendorLogin = () => {
       setIsLoading(true);
       
       if (isSignUp) {
-        const { error: signUpError, data } = await supabase.auth.signUp({
+        const { error: signUpError } = await supabase.auth.signUp({
           email: values.email,
           password: values.password,
           options: {
+            // The database creates the profile and shop from these details
+            // as soon as the account exists (see handle_new_user in supabase/migrations)
             data: {
               full_name: values.fullName,
+              is_vendor: true,
+              business_name: businessName,
+              business_address: businessAddress,
             },
           },
         });
 
         if (signUpError) throw signUpError;
-
-        // Create vendor profile
-        if (data.user) {
-          const { error: vendorError } = await supabase
-            .from('vendors')
-            .insert([
-              {
-                user_id: data.user.id,
-                business_name: businessName || 'Test Business',
-                address: businessAddress || 'Test Address',
-              }
-            ]);
-
-          if (vendorError) throw vendorError;
-
-          // Update user profile to mark as vendor
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .update({ is_vendor: true })
-            .eq('id', data.user.id);
-
-          if (profileError) throw profileError;
-        }
 
         toast({
           title: "Account created successfully",
@@ -71,53 +52,6 @@ const VendorLogin = () => {
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: values.email,
-          password: values.password,
-        });
-
-        if (signInError) throw signInError;
-
-        navigate('/vendor-dashboard');
-
-        toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Authentication error",
-        description: (error as Error).message || "An unexpected error occurred",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePhoneSubmit = async (values: z.infer<typeof phoneFormSchema>) => {
-    try {
-      setIsLoading(true);
-
-      if (isSignUp) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          phone: values.phone,
-          password: values.password,
-          options: {
-            data: {
-              full_name: values.fullName,
-            },
-          },
-        });
-
-        if (signUpError) throw signUpError;
-
-        toast({
-          title: "Verification code sent",
-          description: "Please check your phone for the verification code.",
-        });
-      } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          phone: values.phone,
           password: values.password,
         });
 
@@ -182,11 +116,11 @@ const VendorLogin = () => {
               </div>
             )}
 
-            <AuthTabs
+            <AuthForm
+              type="email"
               isSignUp={isSignUp}
+              onSubmit={handleEmailSubmit}
               isLoading={isLoading}
-              onEmailSubmit={handleEmailSubmit}
-              onPhoneSubmit={handlePhoneSubmit}
             />
 
             <button
