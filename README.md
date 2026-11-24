@@ -4,7 +4,7 @@ A loyalty-card app for independent coffee shops. Customers sign up, show a QR co
 
 I designed the **PostgreSQL database** (on Supabase) behind it, with the business rules enforced inside the database itself: row-level security, database functions and SQL migrations.
 
-> **Portfolio:** [rsts24.github.io](https://rsts24.github.io) · **Author:** Ritesh Shetty · [LinkedIn](https://www.linkedin.com/in/rks258)
+> **Live app:** [stampo-stamps.lovable.app](https://stampo-stamps.lovable.app) · **Portfolio:** [rsts24.github.io](https://rsts24.github.io) · **Author:** Ritesh Shetty · [LinkedIn](https://www.linkedin.com/in/rks258)
 
 ---
 
